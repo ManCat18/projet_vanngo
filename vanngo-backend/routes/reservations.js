@@ -22,9 +22,9 @@ router.post('/', (req, res) => {
         }
 
         const insertQuery = `
-      INSERT INTO reservation (offre_id_offre, passager_id, statut, date_resa) 
-      VALUES (?, ?, 'attente', NOW())
-    `;
+            INSERT INTO reservation (offre_id_offre, passager_id, statut, date_resa) 
+            VALUES (?, ?, 'attente', NOW())
+        `;
 
         db.query(insertQuery, [offre_id_offre, passager_id], (err, result) => {
             if (err) {
@@ -51,12 +51,12 @@ router.get('/utilisateur/:id', (req, res) => {
     const userId = req.params.id;
 
     const query = `
-    r.*, o.lieu_depart, o.lieu_arrivee, o.date_heure_depart, u.prenom as conducteur_prenom, u.nom as conducteur_nom
-    FROM reservation r
-    JOIN offre o ON r.offre_id_offre = o.id_offre
-    JOIN utilisateur u ON o.conducteur_id = u.id_utilisateur
-    WHERE r.passager_id = ?
-  `;
+        r.*, o.lieu_depart, o.lieu_arrivee, o.date_heure_depart, u.prenom as conducteur_prenom, u.nom as conducteur_nom
+        FROM reservation r
+        JOIN offre o ON r.offre_id_offre = o.id_offre
+        JOIN utilisateur u ON o.conducteur_id = u.id_utilisateur
+        WHERE r.passager_id = ?
+    `;
 
     db.query(`SELECT ${query}`, [userId], (err, results) => {
         if (err) {

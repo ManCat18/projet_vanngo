@@ -25,9 +25,9 @@ router.post('/register', async (req, res) => {
             const hashedPassword = await bcrypt.hash(mdp, saltRounds);
 
             const insertQuery = `
-        INSERT INTO utilisateur (nom, prenom, email_univ, mdp, type_profil, date_creation) 
-        VALUES (?, ?, ?, ?, ?, NOW())
-      `;
+                INSERT INTO utilisateur (nom, prenom, email_univ, mdp, type_profil, date_creation) 
+                VALUES (?, ?, ?, ?, ?, NOW())
+            `;
 
             db.query(insertQuery, [nom || null, prenom, email_univ, hashedPassword, type_profil], (err, result) => {
                 if (err) {

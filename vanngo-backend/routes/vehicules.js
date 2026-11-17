@@ -11,9 +11,9 @@ router.post('/', (req, res) => {
     }
 
     const query = `
-    INSERT INTO vehicules (utilisateur_id, marque, modele, motorisation, consommation) 
-    VALUES (?, ?, ?, ?, ?)
-  `;
+        INSERT INTO vehicules (utilisateur_id, marque, modele, motorisation, consommation) 
+        VALUES (?, ?, ?, ?, ?)
+    `;
 
     db.query(query, [utilisateur_id, marque, modele, motorisation, consommation || null], (err, result) => {
         if (err) {
