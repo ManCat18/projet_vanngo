@@ -1,8 +1,26 @@
+/**
+ * @file Module de gestion des réservations de covoiturage
+ * @author Manon CATTANEO
+ */
+
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-
-// RÉSERVER UNE OFFRE : POST /api/reservations
+/**
+ * @description Route pour effectuer une réservation
+ * @function reservations/
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec le message de succès ou d'erreur
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Effectuer une réservation
+ * POST /api/reservations
+ * {
+ *  "offre_id_offre": 1,
+ *  "passager_id": 2
+ * }
+ */
 router.post('/', (req, res) => {
     const { offre_id_offre, passager_id } = req.body;
 
@@ -46,7 +64,17 @@ router.post('/', (req, res) => {
     });
 });
 
-// RÉCUPÉRER LES RÉSERVATIONS D'UN UTILISATEUR (Passager ou Conducteur via ses offres) : GET /api/reservations/utilisateur/:id
+/**
+ * @description Route pour récupérer les réservations d'un utilisateur
+ * @function reservations/utilisateur/:id
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec les réservations de l'utilisateur
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Récupérer les réservations d'un utilisateur
+ * GET /api/reservations/utilisateur/1
+ */
 router.get('/utilisateur/:id', (req, res) => {
     const userId = req.params.id;
 

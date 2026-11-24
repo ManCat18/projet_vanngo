@@ -1,8 +1,26 @@
+/**
+ * @file Module de gestion de l'historique des trajets et du bilan carbone
+ * @author Manon CATTANEO
+ */
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// Fonction pour calculer le CO2 économisé
+/**
+ * @description Fonction pour calculer le CO2 économisé
+ * @function calculerCo2Economise
+ * @param {number} distanceKm - La distance en kilomètres
+ * @param {number} consommationL100 - La consommation en litres pour 100 km
+ * @param {string} motorisation - Le type de motorisation (essence, diesel, hybride, electrique)
+ * @param {number} nombreOccupants - Le nombre d'occupants dans le véhicule
+ * @returns {number} - Le CO2 économisé en kg
+ * @throws {Error} - Si la motorisation n'est pas reconnue
+ * @throws {Error} - Si la distance ou la consommation est négative
+ * @throws {Error} - Si le nombre d'occupants est inférieur à 1
+ * @example
+ * // Calcul du CO2 économisé pour un trajet de 100 km avec une consommation de 6 L/100 km, motorisation essence et 2 occupants
+ * const co2Economise = calculerCo2Economise(100, 6, 'essence', 2);
+ */
 function calculerCo2Economise(distanceKm, consommationL100, motorisation, nombreOccupants = 2) { 
     // Valeur par défaut de nombreOccupants à 2 si non fourni
     const facteursCarburant = {
@@ -23,7 +41,21 @@ function calculerCo2Economise(distanceKm, consommationL100, motorisation, nombre
     return parseFloat(co2EconomiseGlobal.toFixed(1));
 }
 
-// AJOUTER UN TRAJET À L'HISTORIQUE AVEC CALCUL DE CO2 : POST /api/historique
+/**
+ * @description Route pour ajouter un trajet à l'historique avec calcul de CO2
+ * @function historique/ajouter
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec le message de succès ou d'erreur
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Ajouter un trajet à l'historique
+* {
+*   "reservation_id_reservation": 1,
+*   "distance_km": 100,
+*   "nombre_occupants": 2
+* }
+ */
 router.post('/', (req, res) => {
     const { reservation_id_reservation, distance_km, nombre_occupants } = req.body;
 
@@ -72,7 +104,17 @@ router.post('/', (req, res) => {
     });
 });
 
-// RÉCUPÉRER L'HISTORIQUE ET STATISTIQUES D'UN UTILISATEUR : GET /api/historique/utilisateur/:id
+/**
+ * @description Route pour récupérer l'historique et les statistiques d'un utilisateur
+ * @function historique/utilisateur/:id
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec l'historique et les statistiques
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Récupérer l'historique et les statistiques d'un utilisateur
+ * GET /api/historique/utilisateur/1
+ */
 router.get('/utilisateur/:id', (req, res) => {
     const userId = req.params.id;
 

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>routes/historique.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#auth/login">auth/login</a></li><li><a href="global.html#auth/register">auth/register</a></li><li><a href="global.html#calculerCo2Economise">calculerCo2Economise</a></li><li><a href="global.html#connection">connection</a></li><li><a href="global.html#historique/ajouter">historique/ajouter</a></li><li><a href="global.html#historique/utilisateur/:id">historique/utilisateur/:id</a></li><li><a href="global.html#offres/">offres/</a></li><li><a href="global.html#offres/publier">offres/publier</a></li><li><a href="global.html#offres/recherche">offres/recherche</a></li><li><a href="global.html#reservations/">reservations/</a></li><li><a href="global.html#reservations/utilisateur/:id">reservations/utilisateur/:id</a></li><li><a href="global.html#vehicules/">vehicules/</a></li><li><a href="global.html#vehicules/utilisateur/:id">vehicules/utilisateur/:id</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">routes/historique.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file Module de gestion de l'historique des trajets et du bilan carbone
+ * @author Manon CATTANEO
+ */
+const express = require('express');
+const router = express.Router();
+const db = require('../db');
+
+/**
+ * @description Fonction pour calculer le CO2 économisé
+ * @function calculerCo2Economise
+ * @param {number} distanceKm - La distance en kilomètres
+ * @param {number} consommationL100 - La consommation en litres pour 100 km
+ * @param {string} motorisation - Le type de motorisation (essence, diesel, hybride, electrique)
+ * @param {number} nombreOccupants - Le nombre d'occupants dans le véhicule
+ * @returns {number} - Le CO2 économisé en kg
+ * @throws {Error} - Si la motorisation n'est pas reconnue
+ * @throws {Error} - Si la distance ou la consommation est négative
+ * @throws {Error} - Si le nombre d'occupants est inférieur à 1
+ * @example
+ * // Calcul du CO2 économisé pour un trajet de 100 km avec une consommation de 6 L/100 km, motorisation essence et 2 occupants
+ * const co2Economise = calculerCo2Economise(100, 6, 'essence', 2);
+ */
+function calculerCo2Economise(distanceKm, consommationL100, motorisation, nombreOccupants = 2) { 
+    // Valeur par défaut de nombreOccupants à 2 si non fourni
+    const facteursCarburant = {
+        essence: 2.3,
+        diesel: 2.7,
+        hybride: 2.0,
+        electrique: 0.2
+    };
+
+    const facteur = facteursCarburant[motorisation] || 2.3; // Valeur par défaut : essence
+
+    const litresConsommes = (distanceKm * consommationL100) / 100;
+
+    const co2TotalKg = litresConsommes * facteur;
+
+    const co2EconomiseGlobal = co2TotalKg * (1 - (1 / nombreOccupants));
+
+    return parseFloat(co2EconomiseGlobal.toFixed(1));
+}
+
+/**
+ * @description Route pour ajouter un trajet à l'historique avec calcul de CO2
+ * @function historique/ajouter
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec le message de succès ou d'erreur
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Ajouter un trajet à l'historique
+* {
+*   "reservation_id_reservation": 1,
+*   "distance_km": 100,
+*   "nombre_occupants": 2
+* }
+ */
+router.post('/', (req, res) => {
+    const { reservation_id_reservation, distance_km, nombre_occupants } = req.body;
+
+    if (!reservation_id_reservation || !distance_km) {
+        return res.status(400).json({ error: 'Informations incomplètes pour enregistrer l\'historique.' });
+    }
+
+    const queryInfos = `
+        v.consommation, v.motorisation 
+        FROM reservation r
+        JOIN offre o ON r.offre_id_offre = o.id_offre
+        JOIN vehicules v ON o.vehicules_id_vehicules = v.id_vehicules
+        WHERE r.id_reservation = ?
+    `;
+
+    db.query(`SELECT ${queryInfos}`, [reservation_id_reservation], (err, results) => {
+        if (err || results.length === 0) {
+            return res.status(404).json({ error: 'Impossible de récupérer les caractéristiques du véhicule pour ce trajet.' });
+        }
+
+        const { consommation, motorisation } = results[0];
+
+        const co2Economise = calculerCo2Economise(
+            distance_km,
+            consommation || 6.0,
+            motorisation || 'essence',
+            nombre_occupants || 2
+        );
+
+        const insertQuery = `
+            INSERT INTO historique (reservation_id_reservation, distance_km, co2_economise, date_realisation) 
+            VALUES (?, ?, ?, NOW())
+        `;
+
+        db.query(insertQuery, [reservation_id_reservation, distance_km, co2Economise], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Erreur lors de l\'enregistrement de l\'historique.' });
+            }
+            res.status(201).json({
+                message: 'Trajet enregistré et bilan carbone calculé avec succès !',
+                historiqueId: result.insertId,
+                co2_economise_kg: co2Economise
+            });
+        });
+    });
+});
+
+/**
+ * @description Route pour récupérer l'historique et les statistiques d'un utilisateur
+ * @function historique/utilisateur/:id
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec l'historique et les statistiques
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Récupérer l'historique et les statistiques d'un utilisateur
+ * GET /api/historique/utilisateur/1
+ */
+router.get('/utilisateur/:id', (req, res) => {
+    const userId = req.params.id;
+
+    const query = `
+        h.*, r.id_reservation, o.lieu_depart, o.lieu_arrivee 
+        FROM historique h
+        JOIN reservation r ON h.reservation_id_reservation = r.id_reservation
+        JOIN offre o ON r.offre_id_offre = o.id_offre
+        WHERE r.passager_id = ? OR o.conducteur_id = ?
+    `;
+
+    db.query(`SELECT ${query}`, [userId, userId], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Erreur serveur lors de la récupération de l\'historique.' });
+        }
+        res.status(200).json(results);
+    });
+});
+
+module.exports = router;</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Nov 17 2026 19:30:12 GMT+0100 (heure normale d’Europe centrale) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

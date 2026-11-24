@@ -1,8 +1,30 @@
+/**
+ * @file Module de gestion des véhicules
+ * @author Manon CATTANEO
+ */
+
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// AJOUTER UN VÉHICULE : POST /api/vehicules
+/**
+ * @description Route pour ajouter un véhicule
+ * @function vehicules/
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec le message de succès ou d'erreur
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Ajouter un véhicule
+ * POST /api/vehicules
+ * {
+ *   "utilisateur_id": 1,
+ *   "marque": "Toyota",
+ *   "modele": "Corolla",
+ *   "motorisation": "essence",
+ *   "consommation": 6.5
+ * }
+ */
 router.post('/', (req, res) => {
     const { utilisateur_id, marque, modele, motorisation, consommation } = req.body;
 
@@ -27,7 +49,18 @@ router.post('/', (req, res) => {
     });
 });
 
-// RÉCUPÉRER LES VÉHICULES D'UN UTILISATEUR : GET /api/vehicules/utilisateur/:id
+/**
+ * @description Route pour récupérer les véhicules d'un utilisateur
+ * @function vehicules/utilisateur/:id
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec les véhicules de l'utilisateur
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Récupérer les véhicules d'un utilisateur
+ * GET /api/vehicules/utilisateur/1
+ */
+
 router.get('/utilisateur/:id', (req, res) => {
     const userId = req.params.id;
 

@@ -1,9 +1,30 @@
+/**
+ * @file Module de gestion de l'authentification des utilisateurs
+ * @author Manon CATTANEO
+ */
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const db = require('../db');
 
-// ROUTE D'INSCRIPTION : /api/auth/register
+/**
+ * @description Route d'inscription d'un utilisateur de l'application
+ * @function auth/register
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec le message de succès ou d'erreur
+ * @throws {Error} - Erreur interne du serveur
+ * 
+ * @example
+ * // Inscription d'un utilisateur
+ * {
+ *   "nom": "Doe",
+ *   "prenom": "John",
+ *   "email_univ": "john.doe@univ.fr",
+ *   "mdp": "motdepasse123",
+ *   "type_profil": "conducteur"
+ * }
+ */
 router.post('/register', async (req, res) => {
     try {
         const { nom, prenom, email_univ, mdp, type_profil } = req.body;
@@ -47,7 +68,22 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// ROUTE DE CONNEXION : /api/auth/login
+/**
+ * @description Route de connexion d'un utilisateur de l'application
+ * 
+ * @function auth/login
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec le message de succès ou d'erreur
+ * @throws {Error} - Erreur interne du serveur
+ * 
+ * @example
+ * // Connexion d'un utilisateur
+ * {
+ *   "email_univ": "john.doe@univ.fr",
+ *   "mdp": "motdepasse123"
+ * }
+ */
 router.post('/login', (req, res) => {
     const { email_univ, mdp } = req.body;
 
@@ -66,7 +102,9 @@ router.post('/login', (req, res) => {
         }
 
         const user = results[0];
-
+        if (!user) {
+            return res.status(401).json({ error: 'Email ou mot de passe incorrect.' });
+        }
         const isPasswordValid = await bcrypt.compare(mdp, user.mdp);
 
         if (!isPasswordValid) {

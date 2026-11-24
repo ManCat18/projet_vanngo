@@ -7,12 +7,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/**
+ * Enregistrer les routes avec leurs préfixes
+ * @param {string} prefix - Le préfixe de la route
+ * @param {Object} routes - Les routes à enregistrer
+ */
 app.use('/api/auth', require('../routes/auth'));
 app.use('/api/vehicules', require('../routes/vehicules'));
 app.use('/api/offres', require('../routes/offres'));
 app.use('/api/reservations', require('../routes/reservations'));
 app.use('/api/historique', require('../routes/historique'));
 
+/**
+ * Tests d'intégration complets pour le backend de Vann'Go
+ */
 describe('Vann\'Go Backend Comprehensive Integration Tests', () => {
     let createdUserId;
     let createdVehiculeId;

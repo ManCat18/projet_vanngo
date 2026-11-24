@@ -1,8 +1,25 @@
+/**
+ * @file Module de gestion des offres de covoiturage
+ * @author Manon CATTANEO
+ */
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// ROUTE DE RECHERCHE INTELLIGENTE : GET /api/offres/recherche
+/**
+ * @description Route de recherche intelligente d'offres de covoiturage
+ * @function offres/recherche
+ * @param {string} lieu_depart - Le lieu de départ recherché
+ * @param {string} lieu_arrivee - Le lieu d'arrivée recherché
+ * @param {string} date_souhaitee - La date souhaitée pour la recherche
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec les résultats de la recherche
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Rechercher des offres de covoiturage
+ * GET /api/offres/recherche?lieu_depart=Paris&lieu_arrivee=Lyon&date_souhaitee=2024-06-15
+ */
 router.get('/recherche', (req, res) => {
     const { lieu_depart, lieu_arrivee, date_souhaitee } = req.query;
 
@@ -33,7 +50,25 @@ router.get('/recherche', (req, res) => {
     });
 });
 
-// PUBLIER UNE OFFRE : POST /api/offres
+/**
+ * @description Route pour publier une offre de covoiturage
+ * @function offres/publier
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec le message de succès ou d'erreur
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Publier une offre de covoiturage
+ * POST /api/offres
+ * {
+ *  "conducteur_id": 1,
+ *  "vehicules_id_vehicules": 2,
+ *  "lieu_depart": "Paris",
+ *  "lieu_arrivee": "Lyon",
+ *  "date_heure_depart": "2024-06-15 08:00:00",
+ *  "place_disponible": 3
+ * }
+ */
 router.post('/', (req, res) => {
     const { conducteur_id, vehicules_id_vehicules, lieu_depart, lieu_arrivee, date_heure_depart, place_disponible } = req.body;
 
@@ -58,7 +93,17 @@ router.post('/', (req, res) => {
     });
 });
 
-// RÉCUPÉRER TOUTES LES OFFRES DISPONIBLES : GET /api/offres
+/**
+ * @description Route pour récupérer toutes les offres disponibles 
+ * @function offres/
+ * @param {Object} req - La requête HTTP
+ * @param {Object} res - La réponse HTTP
+ * @returns {Object} - La réponse JSON avec les offres disponibles
+ * @throws {Error} - Erreur interne du serveur
+ * @example
+ * // Récupérer toutes les offres disponibles
+ * GET /api/offres
+ */
 router.get('/', (req, res) => {
     const query = `
         o.*, u.nom, u.prenom, v.marque, v.modele, v.motorisation 
@@ -68,7 +113,6 @@ router.get('/', (req, res) => {
         WHERE o.date_heure_depart >= NOW() AND o.place_disponible > 0
     `;
 
-    // Correction de la syntaxe SQL SELECT standard
     const fullQuery = `SELECT ${query}`;
 
     db.query(fullQuery, (err, results) => {
