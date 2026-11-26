@@ -4,9 +4,12 @@
  */
 
 const mysql = require('mysql2');
-require('dotenv').config();
+const path = require('path');
 
 const isTestEnvironment = process.env.NODE_ENV === 'test';
+const envFile = isTestEnvironment ? '.env.test' : '.env';
+
+require('dotenv').config({ path: path.resolve(__dirname, envFile), override: true });
 
 /**
  * @description Création de la connexion à la base de données
